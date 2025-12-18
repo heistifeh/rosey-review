@@ -3,81 +3,21 @@
 import * as React from "react";
 import Link from "next/link";
 import { BadgeCheck, Search, SlidersHorizontal, Star, ThumbsUp } from "lucide-react";
+import { toast } from "sonner";
 
 import { Navbar } from "@/components/shared/navbar";
 import { Footer } from "@/components/shared/footer";
 import { Reveal } from "@/components/shared/reveal";
 import { HomeBackground } from "@/components/shared/home/background";
+import { helpfulAdjustment, useHelpfulVotes } from "@/components/providers/helpful-votes-provider";
+import { REVIEWS } from "@/lib/data/reviews";
+import { absoluteUrl, siteConfig } from "@/lib/seo";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-
-type Review = {
-  id: string;
-  title: string;
-  body: string;
-  name: string;
-  meta: string;
-  rating: number;
-  verified: boolean;
-  createdAt: string; // ISO or display string
-  helpfulCount: number;
-  tags: string[];
-};
-
-const REVIEWS: Review[] = [
-  {
-    id: "rosey-001",
-    title: "Fast, clean, and trustworthy",
-    body: "Everything felt straightforward. Pages loaded quickly and the experience was calm. It did not feel like the site was trying to trick me into anything.",
-    name: "Amina",
-    meta: "Verified user",
-    rating: 5,
-    verified: true,
-    createdAt: "2025-12-15",
-    helpfulCount: 42,
-    tags: ["Speed", "Trust"],
-  },
-  {
-    id: "rosey-002",
-    title: "Good overall, one thing to improve",
-    body: "Really solid experience. I would love slightly clearer guidance on one step, but it is already better than most sites.",
-    name: "David",
-    meta: "Verified user",
-    rating: 4,
-    verified: true,
-    createdAt: "2025-12-12",
-    helpfulCount: 18,
-    tags: ["UX", "Clarity"],
-  },
-  {
-    id: "rosey-003",
-    title: "Feels credible",
-    body: "The way information is presented feels transparent. I like that reviews do not feel edited and the page is easy to scan.",
-    name: "Chioma",
-    meta: "User",
-    rating: 5,
-    verified: false,
-    createdAt: "2025-12-09",
-    helpfulCount: 9,
-    tags: ["Transparency"],
-  },
-  {
-    id: "rosey-004",
-    title: "Decent experience",
-    body: "No major issues. I think the overall flow is good. Would be nice to see more guidance on what is verified and what is not.",
-    name: "Michael",
-    meta: "User",
-    rating: 3,
-    verified: false,
-    createdAt: "2025-12-05",
-    helpfulCount: 3,
-    tags: ["Verification"],
-  },
-];
 
 function Stars({ rating }: { rating: number }) {
   return (
@@ -106,6 +46,7 @@ export default function ReviewsPage() {
   const [sort, setSort] = React.useState<"recent" | "highest" | "helpful">("recent");
   const [minRating, setMinRating] = React.useState<number | null>(null);
   const [verifiedOnly, setVerifiedOnly] = React.useState(false);
+  const { getVote, toggleVote } = useHelpfulVotes();
 
   // simple client-side pagination placeholder
   const [page, setPage] = React.useState(1);
@@ -147,9 +88,63 @@ export default function ReviewsPage() {
 
   const pageItems = filtered.slice((safePage - 1) * pageSize, safePage * pageSize);
 
+  const listStructuredData = React.useMemo(
+    () => ({
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      name: `${siteConfig.name} reviews`,
+      itemListElement: REVIEWS.map((review, index) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        url: absoluteUrl(`/reviews/${review.id}`),
+        name: review.title,
+        item: {
+          "@type": "Review",
+          datePublished: review.createdAt,
+          reviewBody: review.body,
+          author: {
+            "@type": "Person",
+            name: review.name,
+          },
+          reviewRating: {
+            "@type": "Rating",
+            ratingValue: review.rating,
+            bestRating: 5,
+            worstRating: 1,
+          },
+        },
+      })),
+    }),
+    [],
+  );
+
+  const handleHelpfulToggle = React.useCallback(
+    (reviewId: string) => {
+      const current = getVote(reviewId);
+      const nextVote = current === "up" ? null : "up";
+      toggleVote(reviewId, "up");
+
+      if (nextVote === "up") {
+        toast.success("Marked as helpful", {
+          description: "Thanks for sharing your feedback.",
+        });
+      } else {
+        toast("Feedback removed", {
+          description: "We cleared your helpful vote.",
+        });
+      }
+    },
+    [getVote, toggleVote],
+  );
+
   return (
     <main className="relative min-h-screen overflow-hidden bg-background text-foreground">
       <HomeBackground />
+      <script
+        type="application/ld+json"
+        suppressHydrationWarning
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(listStructuredData) }}
+      />
 
       <div className="mx-auto max-w-5xl px-4 py-10 md:py-14">
         <Reveal>
@@ -243,10 +238,14 @@ export default function ReviewsPage() {
                 {/* List */}
                 <div className="mx-auto max-w-4xl">
                   <div className="grid gap-4">
-                    {pageItems.map((r, idx) => (
-                      <Reveal key={r.id} delay={220 + idx * 60}>
-                        <Card className="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl">
-                          <CardContent className="p-5 md:p-6">
+                    {pageItems.map((r, idx) => {
+                      const vote = getVote(r.id);
+                      const helpfulDisplay = r.helpfulCount + helpfulAdjustment(vote);
+
+                      return (
+                        <Reveal key={r.id} delay={220 + idx * 60}>
+                          <Card className="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl">
+                            <CardContent className="p-5 md:p-6">
                             <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                               <div className="min-w-0">
                                 <div className="flex flex-wrap items-center gap-2">
@@ -280,8 +279,10 @@ export default function ReviewsPage() {
                                   {r.tags.map((t) => (
                                     <button
                                       key={t}
+                                      type="button"
                                       onClick={() => setQuery(t)}
                                       className="rounded-full border border-white/10 bg-white/0 px-3 py-1 text-xs text-muted-foreground hover:bg-white/5"
+                                      aria-label={`Filter by ${t}`}
                                     >
                                       {t}
                                     </button>
@@ -292,10 +293,13 @@ export default function ReviewsPage() {
                               <div className="flex shrink-0 items-center gap-2 md:flex-col md:items-end">
                                 <Button
                                   variant="ghost"
-                                  className="font-body rounded-full border border-white/10 bg-white/0 hover:bg-white/5"
+                                  className={`font-body rounded-full border border-white/10 bg-white/0 hover:bg-white/5 ${
+                                    vote === "up" ? "border-primary/40 bg-primary/10 text-primary" : ""
+                                  }`}
+                                  onClick={() => handleHelpfulToggle(r.id)}
                                 >
                                   <ThumbsUp className="mr-2 h-4 w-4" />
-                                  Helpful ({r.helpfulCount})
+                                  Helpful ({helpfulDisplay})
                                 </Button>
 
                                 <Button asChild className="font-body rounded-full">
@@ -305,8 +309,9 @@ export default function ReviewsPage() {
                             </div>
                           </CardContent>
                         </Card>
-                      </Reveal>
-                    ))}
+                        </Reveal>
+                      );
+                    })}
 
                     {pageItems.length === 0 && (
                       <Reveal delay={240}>

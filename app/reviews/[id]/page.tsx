@@ -13,93 +13,20 @@ import {
   ThumbsDown,
   ThumbsUp,
 } from "lucide-react";
+import { toast } from "sonner";
 
 import { Navbar } from "@/components/shared/navbar";
 import { Footer } from "@/components/shared/footer";
 import { Reveal } from "@/components/shared/reveal";
 import { HomeBackground } from "@/components/shared/home/background";
+import { helpfulAdjustment, useHelpfulVotes } from "@/components/providers/helpful-votes-provider";
+import { REVIEWS, getReviewById } from "@/lib/data/reviews";
+import { absoluteUrl } from "@/lib/seo";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-
-type Review = {
-  id: string;
-  title: string;
-  body: string;
-  name: string;
-  meta: string;
-  rating: number;
-  verified: boolean;
-  createdAt: string;
-  helpfulCount: number;
-  tags: string[];
-  response?: {
-    author: string;
-    createdAt: string;
-    body: string;
-  };
-};
-
-const REVIEWS: Review[] = [
-  {
-    id: "rosey-001",
-    title: "Fast, clean, and trustworthy",
-    body:
-      "Everything felt straightforward. Pages loaded quickly and the experience was calm. " +
-      "It did not feel like the site was trying to trick me into anything.\n\n" +
-      "I especially liked how readable the layout is. The flow felt consistent and predictable. " +
-      "If you are trying to assess credibility quickly, it does the job.",
-    name: "Amina",
-    meta: "Verified user",
-    rating: 5,
-    verified: true,
-    createdAt: "2025-12-15",
-    helpfulCount: 42,
-    tags: ["Speed", "Trust"],
-    response: {
-      author: "Rosey team",
-      createdAt: "2025-12-16",
-      body:
-        "Thanks for the detailed feedback. We are keeping the experience calm on purpose. " +
-        "If you ever run into confusing steps, please message support with a screenshot and we will fix it fast.",
-    },
-  },
-  {
-    id: "rosey-002",
-    title: "Good overall, one thing to improve",
-    body:
-      "Really solid experience. I would love slightly clearer guidance on one step, " +
-      "but it is already better than most sites.\n\n" +
-      "The main win is that it does not feel noisy. It feels like the site respects my attention.",
-    name: "David",
-    meta: "Verified user",
-    rating: 4,
-    verified: true,
-    createdAt: "2025-12-12",
-    helpfulCount: 18,
-    tags: ["UX", "Clarity"],
-  },
-  {
-    id: "rosey-003",
-    title: "Feels credible",
-    body:
-      "The way information is presented feels transparent. I like that reviews do not feel edited " +
-      "and the page is easy to scan.",
-    name: "Chioma",
-    meta: "User",
-    rating: 5,
-    verified: false,
-    createdAt: "2025-12-09",
-    helpfulCount: 9,
-    tags: ["Transparency"],
-  },
-];
-
-function getReviewById(id: string) {
-  return REVIEWS.find((r) => r.id === id) ?? null;
-}
 
 function Stars({ rating }: { rating: number }) {
   return (
@@ -123,7 +50,59 @@ export default function ReviewDetailPage() {
   const id = params?.id ?? "";
   const review = React.useMemo(() => getReviewById(id), [id]);
 
-  const [helpfulDelta, setHelpfulDelta] = React.useState<null | "up" | "down">(null);
+  const { getVote, toggleVote } = useHelpfulVotes();
+  const helpfulVote = review ? getVote(review.id) : null;
+
+  const reviewStructuredData = React.useMemo(() => {
+    if (!review) return null;
+    return {
+      "@context": "https://schema.org",
+      "@type": "Review",
+      name: review.title,
+      reviewBody: review.body,
+      author: {
+        "@type": "Person",
+        name: review.name,
+      },
+      itemReviewed: {
+        "@type": "Organization",
+        name: "Rosey.link",
+        url: "https://rosey.link",
+      },
+      datePublished: review.createdAt,
+      url: absoluteUrl(`/reviews/${review.id}`),
+      reviewRating: {
+        "@type": "Rating",
+        ratingValue: review.rating,
+        bestRating: 5,
+        worstRating: 1,
+      },
+    };
+  }, [review]);
+
+  const handleHelpfulClick = React.useCallback(
+    (direction: "up" | "down") => {
+      if (!review) return;
+      const current = helpfulVote;
+      const nextVote = current === direction ? null : direction;
+      toggleVote(review.id, direction);
+
+      if (nextVote === "up") {
+        toast.success("Marked as helpful", {
+          description: "Thanks for letting us know this review helped.",
+        });
+      } else if (nextVote === "down") {
+        toast("Marked as not helpful", {
+          description: "We appreciate the signal. We'll keep listening.",
+        });
+      } else {
+        toast("Feedback removed", {
+          description: "We cleared your response for this review.",
+        });
+      }
+    },
+    [helpfulVote, review, toggleVote],
+  );
 
   const related = React.useMemo(() => {
     if (!review) return [];
@@ -133,6 +112,13 @@ export default function ReviewDetailPage() {
   return (
     <main className="relative min-h-screen overflow-hidden bg-background text-foreground">
       <HomeBackground />
+      {reviewStructuredData ? (
+        <script
+          type="application/ld+json"
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(reviewStructuredData) }}
+        />
+      ) : null}
 
       <div className="mx-auto max-w-5xl px-4 py-10 md:py-14">
         <Reveal>
@@ -257,16 +243,20 @@ export default function ReviewDetailPage() {
                               <div className="flex items-center gap-2">
                                 <Button
                                   variant="ghost"
-                                  className="rounded-full border border-white/10 bg-white/0 hover:bg-white/5"
-                                  onClick={() => setHelpfulDelta((v) => (v === "up" ? null : "up"))}
+                                  className={`rounded-full border border-white/10 bg-white/0 hover:bg-white/5 ${
+                                    helpfulVote === "up" ? "border-primary/40 bg-primary/10 text-primary" : ""
+                                  }`}
+                                  onClick={() => handleHelpfulClick("up")}
                                 >
                                   <ThumbsUp className="mr-2 h-4 w-4" />
                                   Yes
                                 </Button>
                                 <Button
                                   variant="ghost"
-                                  className="rounded-full border border-white/10 bg-white/0 hover:bg-white/5"
-                                  onClick={() => setHelpfulDelta((v) => (v === "down" ? null : "down"))}
+                                  className={`rounded-full border border-white/10 bg-white/0 hover:bg-white/5 ${
+                                    helpfulVote === "down" ? "border-primary/40 bg-primary/10 text-primary" : ""
+                                  }`}
+                                  onClick={() => handleHelpfulClick("down")}
                                 >
                                   <ThumbsDown className="mr-2 h-4 w-4" />
                                   No
@@ -277,7 +267,7 @@ export default function ReviewDetailPage() {
                             <div className="mt-3 text-xs text-muted-foreground">
                               Helpful votes:{" "}
                               <span className="text-foreground">
-                                {review.helpfulCount + (helpfulDelta === "up" ? 1 : helpfulDelta === "down" ? -1 : 0)}
+                                {review.helpfulCount + helpfulAdjustment(helpfulVote)}
                               </span>
                             </div>
                           </CardContent>

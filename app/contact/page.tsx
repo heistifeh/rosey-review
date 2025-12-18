@@ -3,6 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { AlertTriangle, Clock, Mail, ShieldCheck } from "lucide-react";
+import { toast } from "sonner";
 
 import { Navbar } from "@/components/shared/navbar";
 import { Footer } from "@/components/shared/footer";
@@ -69,9 +70,20 @@ export default function ContactPage() {
     setStatus("sending");
 
     // Placeholder: wire this to your API route later (/api/contact).
-    await new Promise((r) => setTimeout(r, 900));
+    try {
+      await new Promise((r) => setTimeout(r, 900));
 
-    setStatus("sent");
+      toast.success("Message sent", {
+        description: "Thanks for reaching out. We'll reply soon.",
+      });
+
+      setStatus("sent");
+    } catch (error) {
+      toast.error("Unable to send message", {
+        description: "Please try again in a moment.",
+      });
+      setStatus("idle");
+    }
   }
 
   return (

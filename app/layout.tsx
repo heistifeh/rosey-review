@@ -1,6 +1,10 @@
 import "./globals.css";
-import { ThemeProvider } from "@/components/theme-provider";
 import { Manrope, Sora } from "next/font/google";
+
+import { Toaster } from "sonner";
+
+import { ThemeProvider } from "@/components/theme-provider";
+import { HelpfulVotesProvider } from "@/components/providers/helpful-votes-provider";
 
 const sora = Sora({
   subsets: ["latin"],
@@ -22,7 +26,12 @@ export default function RootLayout({
       <body
         className={`${sora.variable} ${manrope.variable} font-body antialiased`}
       >
-        <ThemeProvider>{children}</ThemeProvider>
+        <HelpfulVotesProvider>
+          <ThemeProvider>
+            {children}
+            <Toaster richColors position="bottom-center" closeButton />
+          </ThemeProvider>
+        </HelpfulVotesProvider>
       </body>
     </html>
   );
