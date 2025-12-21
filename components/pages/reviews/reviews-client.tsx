@@ -143,10 +143,10 @@ export function ReviewsClient({ initialReviews, structuredData }: ReviewsClientP
                 </div>
 
                 <Reveal delay={180}>
-                  <div className="mx-auto mt-8 max-w-4xl">
-                    <div className="grid gap-3 rounded-2xl border border-white/10 bg-white/5 p-3 backdrop-blur-xl md:grid-cols-[1fr_auto]">
-                      <div className="relative flex w-full items-center rounded-xl border border-white/10 bg-background/30">
-                        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <div className="mx-auto mt-8 max-w-4xl">
+                      <div className="grid gap-3 rounded-2xl border border-white/10 bg-white/5 p-3 backdrop-blur-xl md:grid-cols-[1fr_auto]">
+                        <div className="relative flex w-full items-center rounded-xl border border-white/10 bg-background/30">
+                          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                         <Input
                           value={query}
                           onChange={(e) => setQuery(e.target.value)}
@@ -178,12 +178,18 @@ export function ReviewsClient({ initialReviews, structuredData }: ReviewsClientP
                           Sort: {sort === "recent" ? "Recent" : sort === "highest" ? "Highest" : "Most helpful"}
                         </Button>
                       </div>
-                    </div>
+                      </div>
 
-                    <div className="mt-3 flex flex-wrap items-center gap-2">
-                      {[
-                        { label: "All", value: null },
-                        { label: "4+ stars", value: 4 },
+                      <div className="mt-4 flex justify-end">
+                        <Button asChild className="rounded-full">
+                          <Link href="/reviews/submit">Write a review</Link>
+                        </Button>
+                      </div>
+
+                      <div className="mt-3 flex flex-wrap items-center gap-2">
+                        {[
+                          { label: "All", value: null },
+                          { label: "4+ stars", value: 4 },
                         { label: "3+ stars", value: 3 },
                         { label: "2+ stars", value: 2 },
                       ].map((chip) => {
