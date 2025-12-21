@@ -1,5 +1,3 @@
-"use client";
-
 import { Card, CardContent } from "@/components/ui/card";
 import { Reveal } from "@/components/shared/reveal";
 import { Navbar } from "@/components/shared/navbar";
@@ -8,8 +6,13 @@ import { HomeBackground } from "@/components/shared/home/background";
 import { HomeHero } from "@/components/shared/home/hero";
 import { HomeMetrics } from "@/components/shared/home/metrics";
 import { HomeFeaturedReview } from "@/components/shared/home/featured-review";
+import { HomeReviewsPreview } from "@/components/shared/home/reviews-preview";
+import { getReviews } from "@/lib/sanity/reviews";
 
-export default function Page() {
+export default async function Page() {
+  const reviews = await getReviews();
+  const preview = reviews.slice(0, 3);
+
   return (
     <main className="relative min-h-screen overflow-hidden bg-background text-foreground">
       <HomeBackground />
@@ -26,6 +29,10 @@ export default function Page() {
                   <HomeHero />
                   <HomeMetrics />
                   <HomeFeaturedReview />
+                </div>
+
+                <div className="mx-auto mt-10 max-w-4xl">
+                  <HomeReviewsPreview reviews={preview} />
                 </div>
 
                 <div className="mt-14 h-24" />
