@@ -13,6 +13,9 @@ export function Footer() {
             <Link className="text-muted-foreground hover:text-foreground" href="/about">
               About
             </Link>
+            <Link className="text-muted-foreground hover:text-foreground" href="/ultimate-guide-2025">
+              Ultimate Guide 2025
+            </Link>
             <Link className="text-muted-foreground hover:text-foreground" href="/contact">
               Contact
             </Link>

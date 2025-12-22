@@ -3,7 +3,15 @@ import type { MetadataRoute } from "next";
 import { absoluteUrl } from "@/lib/seo";
 import { getReviews } from "@/lib/sanity/reviews";
 
-const STATIC_ROUTES = ["/", "/reviews", "/contact", "/about", "/review-policy", "/terms"] as const;
+const STATIC_ROUTES = [
+  "/",
+  "/reviews",
+  "/contact",
+  "/about",
+  "/review-policy",
+  "/terms",
+  "/ultimate-guide-2025",
+] as const;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
