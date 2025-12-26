@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <!-- created with Free Online Sitemap Generator www.xml-sitemaps.com -->
+  <url>
+    <loc>https://roseyreview.com/</loc>
+    <lastmod>2025-12-26T16:04:43+00:00</lastmod>
+    <priority>1.00</priority>
+  </url>
+  <url>
+    <loc>https://roseyreview.com/reviews</loc>
+    <lastmod>2025-12-26T16:04:43+00:00</lastmod>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://roseyreview.com/about</loc>
+    <lastmod>2025-12-26T16:04:43+00:00</lastmod>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://roseyreview.com/ultimate-guide-2025</loc>
+    <lastmod>2025-12-26T16:04:43+00:00</lastmod>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://roseyreview.com/contact</loc>
+    <lastmod>2025-12-26T16:04:43+00:00</lastmod>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://roseyreview.com/review-policy</loc>
+    <lastmod>2025-12-26T16:04:43+00:00</lastmod>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://roseyreview.com/terms</loc>
+    <lastmod>2025-12-26T16:04:43+00:00</lastmod>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://roseyreview.com/reviews/submit</loc>
+    <lastmod>2025-12-26T16:04:43+00:00</lastmod>
+    <priority>0.64</priority>
+  </url>
+</urlset>
